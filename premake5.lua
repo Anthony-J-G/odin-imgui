@@ -504,6 +504,13 @@ workspace "ImGui"
 
 	if not os.architecture then
 		function os.architecture()
+			if os.target() == "macosx" then
+				local target_arch = os.targetarch()
+				-- targetarch has to be set explicitly, so fall back to host arch if it's not
+				if target_arch == nil then target_arch = os.hostarch() end
+				return target_arch:lower()
+			end
+
 			-- Check for ARM64 first
 			local arch = os.getenv("PROCESSOR_ARCHITECTURE") or ""
 			local archw6432 = os.getenv("PROCESSOR_ARCHITEW6432") or ""
