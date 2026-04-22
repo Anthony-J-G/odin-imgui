@@ -2,6 +2,7 @@
 **/build/*
 !**/build/.gitkeep
 impl_enabled.odin
+dist/
 
 # Libraries
 *.lib
@@ -27,6 +28,7 @@ impl_enabled.odin
 *.su
 *.idb
 *.pdb
+*.rdi
 
 # Sublime Text
 *.sublime-workspace
@@ -39,3 +41,6 @@ impl_enabled.odin
 
 # Odin
 ols.json
+
+# ImGui
+*.ini

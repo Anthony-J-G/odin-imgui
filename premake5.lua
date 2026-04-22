@@ -361,7 +361,7 @@ local function generateBuildFile()
     file:write("setlocal enabledelayedexpansion\n\n")
 
     file:write(":: Setup tooling\n")
-    file:write("call vcvars64.bat || exit /b 1\n\n")
+    file:write(":: call vcvars64.bat || exit /b 1\n\n") -- Commented out for now
 
     -- Configuration
     file:write(":: Configuration\n")
@@ -433,34 +433,40 @@ local function generateBuildFile()
     file:write("set CONFIG=Release\n")
     file:write("if /i \"%1\"==\"debug\" set CONFIG=Debug\n\n")
 
+    -- Output configurations
+    file:write("\n:: Output configurations\n")
+    file:write("set OUTPUT_DIR=.\\..\\windows\n")
+    file:write("set OBJECT_DIR=.\\obj\n")
+    file:write("mkdir !OUTPUT_DIR!\n")
+    file:write("mkdir !OBJECT_DIR!\n")
+    file:write("\n")
+
     -- Compiler flags based on configuration
-    file:write(":: Compiler flags based on configuration\n")
+    file:write(":: Compiler flags based on configuration\n")    
+    file:write("set TARGET=imgui_", target_arch, "_release.lib\n")
     file:write("set CFLAGS=/MT /EHsc ")
     file:write("/D \"IMGUI_DISABLE_OBSOLETE_FUNCTIONS\" ")
     file:write("/D \"IMGUI_DISABLE_OBSOLETE_KEYIO\" ")
-    file:write("/D \"IMGUI_IMPL_API=extern \\\"C\\\"\"")
+    file:write("/D \"IMGUI_IMPL_API=extern \\\"C\\\"\"")    
     if isBackendEnabled("vulkan") then
         file:write(" /D \"VK_NO_PROTOTYPES\"")
     end
     if isBackendEnabled("wgpu") then
         file:write(" /D \"IMGUI_IMPL_WEBGPU_BACKEND_WGPU\"")
-    end
+    end    
     file:write("\n")
-    file:write("if /i \"!CONFIG!\"==\"Debug\" (\n")
-    file:write("    set CFLAGS=!CFLAGS! /Zi /D \"DEBUG\"\n")
+    file:write("if /i \"!CONFIG!\"==\"Debug\" (\n")    
+    file:write("    set CFLAGS=!CFLAGS! /Fd!OUTPUT_DIR!\\imgui /Zi /D \"DEBUG\"\n")
+    file:write("    set TARGET=imgui_", target_arch, "_debug.lib\n")
     file:write(") else (\n")
     file:write("    set CFLAGS=!CFLAGS! /O2 /D \"NDEBUG\"\n")
-    file:write(")\n")
-
-    -- Output configurations
-    file:write("\n:: Output configurations\n")
-    file:write("set OUTPUT_DIR=.\\..\n")
-    file:write("set TARGET=imgui_", target_os, "_", target_arch, ".lib\n")
-
+    file:write("    set TARGET=imgui_", target_arch, "_release.lib\n")
+    file:write(")\n")    
+    
     -- Compilation step
     file:write("\n:: Compile ImGui\n")
     file:write("echo Compiling ImGui...\n")
-    file:write("cl /c !CFLAGS! !INCLUDE_DIRS! !SOURCES! /Fo!OUTPUT_DIR!\\\n")
+    file:write("cl /c !CFLAGS! !INCLUDE_DIRS! !SOURCES! /Fo!OBJECT_DIR!\\\n")
     file:write("if %ERRORLEVEL% neq 0 (\n")
     file:write("    echo Compilation failed!\n")
     file:write("    exit /b 1\n")
@@ -469,15 +475,14 @@ local function generateBuildFile()
     -- Link step (create static library)
     file:write("\n:: Create static library\n")
     file:write("echo Creating static library...\n")
-    file:write("lib /OUT:!OUTPUT_DIR!\\!TARGET! !OUTPUT_DIR!\\*.obj\n")
+    file:write("lib /OUT:!OUTPUT_DIR!\\!TARGET! !OBJECT_DIR!\\*.obj\n")
     file:write("if %ERRORLEVEL% neq 0 (\n")
     file:write("    echo Library creation failed!\n")
     file:write("    exit /b 1\n")
     file:write(")\n")
 
     -- Cleanup
-    file:write("\n:: Cleanup\n")
-    file:write("del !OUTPUT_DIR!\\*.obj\n")
+    file:write("\n:: Cleanup\n")    
     file:write("echo Done.\n")
 
     file:close()
