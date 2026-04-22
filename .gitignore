@@ -3,6 +3,7 @@
 !**/build/.gitkeep
 impl_enabled.odin
 dist/
+*.zip
 
 # Libraries
 *.lib

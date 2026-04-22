@@ -26,6 +26,7 @@ glfw_error_callback :: proc "c" (error: i32, description: cstring) {
 main :: proc() {
     glfw.SetErrorCallback(glfw_error_callback)
     if !glfw.Init() { panic("glfw: initialization failed") }
+    defer glfw.Terminate()
 
     glsl_version: cstring = "#version 130"
     glfw.WindowHint(glfw.CONTEXT_VERSION_MAJOR, 3)
@@ -40,6 +41,7 @@ main :: proc() {
 
     imgui.CHECKVERSION()
     imgui.create_context(nil)
+    defer imgui.destroy_context(nil)
 
     imgui_impl_glfw.init_for_open_gl(window, true)
     imgui_impl_opengl3.init(glsl_version)
