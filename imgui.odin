@@ -5,10 +5,18 @@ when ODIN_OS == .Linux || ODIN_OS == .Darwin {
 }
 
 when ODIN_OS == .Windows {
-	when ODIN_ARCH == .amd64 {
-		foreign import lib "imgui_windows_x64.lib"
-	} else {
-		foreign import lib "imgui_windows_arm64.lib"
+	// x86-64
+	when ODIN_DEBUG && ODIN_ARCH == .amd64 {
+		foreign import lib "windows/imgui_x64_debug.lib"
+	} else when !ODIN_DEBUG && ODIN_ARCH == .amd64 {
+		foreign import lib "windows/imgui_x64_release.lib"
+	}
+
+	// Arm64
+	when ODIN_DEBUG && ODIN_ARCH == .arm64 {
+		foreign import lib "windows/imgui_arm64_debug.lib"
+	} else when !ODIN_DEBUG && ODIN_ARCH == .arm64 {
+		foreign import lib "windows/imgui_arm64_release.lib"
 	}
 } else when ODIN_OS == .Linux {
 	when ODIN_ARCH == .amd64 {
