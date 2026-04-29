@@ -5,7 +5,7 @@ import "core:encoding/json"
 import "core:log"
 import "core:mem"
 import "core:mem/virtual"
-import "core:os"
+import os "core:os/old"
 
 Generator :: struct {
 	// Allocator
@@ -26,7 +26,7 @@ Generator :: struct {
 
 FLAG_TYPE :: "i32"
 TAB_SPACE :: "    "
-GENERATED_DIR :: "./generated/"
+GENERATED_DIR :: "./_build/_deps/dear_bindings_dep-src/"
 GENERATED_BACKENDS_DIR :: "./generated/backends/"
 
 // odinfmt: disable
@@ -37,8 +37,10 @@ when ODIN_OS == .Linux || ODIN_OS == .Darwin {
 
 when ODIN_OS == .Windows {
 	when ODIN_ARCH == .amd64 {
+		@(extra_linker_flags="/NODEFAULTLIB:libcmt")
 		foreign import lib "imgui_windows_x64.lib"
 	} else {
+	 	@(extra_linker_flags="/NODEFAULTLIB:libcmt")
 		foreign import lib "imgui_windows_arm64.lib"
 	}
 } else when ODIN_OS == .Linux {
@@ -94,7 +96,7 @@ main :: proc() {
 	fill_type_map(gen)
 
 	// Enough memory for the dcimgui.json
-	tmp_ally_buf := make([]byte, 24 * mem.Megabyte, allocator)
+	tmp_ally_buf := make([]byte, 30 * mem.Megabyte, allocator)
 	ensure(tmp_ally_buf != nil)
 	mem.arena_init(&gen.tmp_arena, tmp_ally_buf[:])
 
