@@ -7,8 +7,10 @@ when ODIN_OS == .Linux || ODIN_OS == .Darwin {
 when ODIN_OS == .Windows {
 	// x86-64
 	when ODIN_DEBUG && ODIN_ARCH == .amd64 {
+		@(extra_linker_flags="/NODEFAULTLIB:libcmt")
 		foreign import lib "windows/imgui_x64_debug.lib"
 	} else when !ODIN_DEBUG && ODIN_ARCH == .amd64 {
+		@(extra_linker_flags="/NODEFAULTLIB:libcmt")
 		foreign import lib "windows/imgui_x64_release.lib"
 	}
 
@@ -48,7 +50,7 @@ CHECKVERSION :: proc() {
 	)
 }
 
-VERSION :: "1.91.9"
+VERSION :: "1.92.7"
 VERSION_NUM :: 19190
 PAYLOAD_TYPE_COLOR_3F :: "_COL3F" // float[3]: Standard type for colors, without alpha. User code may use this type.
 PAYLOAD_TYPE_COLOR_4F :: "_COL4F" // float[4]: Standard type for colors. User code may use this type.

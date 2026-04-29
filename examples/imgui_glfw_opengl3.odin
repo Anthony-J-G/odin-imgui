@@ -8,9 +8,9 @@ import "core:log"
 import "base:runtime"
 import "vendor:glfw"
 
-import imgui "../dist"
-import "../dist/imgui_impl_glfw"
-import "../dist/imgui_impl_opengl3"
+import imgui "../_build/dist"
+import "../_build/dist/imgui_impl_glfw"
+import "../_build/dist/imgui_impl_opengl3"
 
 g_ctx: runtime.Context
 

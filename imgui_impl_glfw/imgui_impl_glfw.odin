@@ -33,7 +33,7 @@ when ODIN_OS == .Windows {
 @(default_calling_convention = "c")
 foreign lib {
 	// Follow "Getting Started" link and check examples/ folder to learn about using backends!
-	@(link_name = "ImGui_ImplGlfw_InitForOpenGL")
+	@(link_name = "cImGui_ImplGlfw_InitForOpenGL")
 	init_for_open_gl :: proc(window: glfw.WindowHandle, install_callbacks: bool) -> bool ---
 	@(link_name = "ImGui_ImplGlfw_InitForVulkan")
 	init_for_vulkan :: proc(window: glfw.WindowHandle, install_callbacks: bool) -> bool ---
@@ -41,7 +41,7 @@ foreign lib {
 	init_for_other :: proc(window: glfw.WindowHandle, install_callbacks: bool) -> bool ---
 	@(link_name = "ImGui_ImplGlfw_Shutdown")
 	shutdown :: proc() ---
-	@(link_name = "ImGui_ImplGlfw_NewFrame")
+	@(link_name = "cImGui_ImplGlfw_NewFrame")
 	new_frame :: proc() ---
 	@(link_name = "ImGui_ImplGlfw_InstallEmscriptenCallbacks")
 	install_emscripten_callbacks :: proc(window: glfw.WindowHandle, canvas_selector: cstring) ---

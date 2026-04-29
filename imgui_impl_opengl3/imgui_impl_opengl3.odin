@@ -35,13 +35,13 @@ Draw_Data :: im.Draw_Data
 @(default_calling_convention = "c")
 foreign lib {
 	// Follow "Getting Started" link and check examples/ folder to learn about using backends!
-	@(link_name = "ImGui_ImplOpenGL3_Init")
+	@(link_name = "cImGui_ImplOpenGL3_Init")
 	init :: proc(glsl_version: cstring = nil) -> bool ---
 	@(link_name = "ImGui_ImplOpenGL3_Shutdown")
 	shutdown :: proc() ---
-	@(link_name = "ImGui_ImplOpenGL3_NewFrame")
+	@(link_name = "cImGui_ImplOpenGL3_NewFrame")
 	new_frame :: proc() ---
-	@(link_name = "ImGui_ImplOpenGL3_RenderDrawData")
+	@(link_name = "cImGui_ImplOpenGL3_RenderDrawData")
 	render_draw_data :: proc(draw_data: ^Draw_Data) ---
 	// (Optional) Called by Init/NewFrame/Shutdown
 	@(link_name = "ImGui_ImplOpenGL3_CreateFontsTexture")
