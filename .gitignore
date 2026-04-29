@@ -1,5 +1,6 @@
 # Build
 **/build/*
+**/_build/*
 !**/build/.gitkeep
 impl_enabled.odin
 dist/
