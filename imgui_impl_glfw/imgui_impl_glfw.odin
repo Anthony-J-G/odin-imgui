@@ -39,7 +39,7 @@ foreign lib {
 	init_for_vulkan :: proc(window: glfw.WindowHandle, install_callbacks: bool) -> bool ---
 	@(link_name = "ImGui_ImplGlfw_InitForOther")
 	init_for_other :: proc(window: glfw.WindowHandle, install_callbacks: bool) -> bool ---
-	@(link_name = "ImGui_ImplGlfw_Shutdown")
+	@(link_name = "cImGui_ImplGlfw_Shutdown")
 	shutdown :: proc() ---
 	@(link_name = "cImGui_ImplGlfw_NewFrame")
 	new_frame :: proc() ---

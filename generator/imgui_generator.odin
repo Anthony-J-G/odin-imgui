@@ -24,10 +24,11 @@ Generator :: struct {
 	replace_map:         map[string]string,
 }
 
-FLAG_TYPE :: "i32"
-TAB_SPACE :: "    "
-GENERATED_DIR :: "./_build/_deps/dear_bindings_dep-src/"
-GENERATED_BACKENDS_DIR :: "./generated/backends/"
+FLAG_TYPE 				:: "i32"
+TAB_SPACE 				:: "    "
+GENERATED_DIR 			:: "./_build/_deps/dear_bindings_dep-src/"
+GENERATED_BACKENDS_DIR 	:: "./generated/backends/"
+FILENAME 				:: "./imgui.odin"
 
 // odinfmt: disable
 FOREIGN_IMPORT :: `
@@ -36,12 +37,22 @@ when ODIN_OS == .Linux || ODIN_OS == .Darwin {
 }
 
 when ODIN_OS == .Windows {
-	when ODIN_ARCH == .amd64 {
+	// x86-64
+	when ODIN_DEBUG && ODIN_ARCH == .amd64 {
 		@(extra_linker_flags="/NODEFAULTLIB:libcmt")
-		foreign import lib "imgui_windows_x64.lib"
-	} else {
+		foreign import lib "windows/imgui_x64_debug.lib"
+	} else when !ODIN_DEBUG && ODIN_ARCH == .amd64 {
 	 	@(extra_linker_flags="/NODEFAULTLIB:libcmt")
-		foreign import lib "imgui_windows_arm64.lib"
+		foreign import lib "windows/imgui_x64_release.lib"
+	}
+
+	// Arm64
+	when ODIN_DEBUG && ODIN_ARCH == .arm64 {
+		@(extra_linker_flags="/NODEFAULTLIB:libcmt")
+		foreign import lib "windows/imgui_arm64_debug.lib"
+	} else when !ODIN_DEBUG && ODIN_ARCH == .arm64 {
+	 	@(extra_linker_flags="/NODEFAULTLIB:libcmt")
+		foreign import lib "windows/imgui_arm64_release.lib"
 	}
 } else when ODIN_OS == .Linux {
 	when ODIN_ARCH == .amd64 {
@@ -110,13 +121,12 @@ IMGUI_JSON :: GENERATED_DIR + "dcimgui.json"
 write_imgui :: proc(gen: ^Generator) -> (ok: bool) {
 	file_allocator := mem.arena_allocator(&gen.tmp_arena)
 	defer free_all(file_allocator)
-
-	filename := "./../imgui.odin"
-	if os.exists(filename) {
-		os.remove(filename)
+	
+	if os.exists(FILENAME) {
+		os.remove(FILENAME)
 	}
 
-	im := create_file_handle(filename, IMGUI_JSON, file_allocator)
+	im := create_file_handle(FILENAME, IMGUI_JSON, file_allocator)
 	defer os.close(im.handle)
 
 	write_package_name(im.handle, nl = false)

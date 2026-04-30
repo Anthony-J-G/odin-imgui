@@ -39,12 +39,14 @@ main :: proc() {
     glfw.SwapInterval(1)
     gl.load_up_to(3, 3, glfw.gl_set_proc_address)
 
-    imgui.CHECKVERSION()
+    // imgui.CHECKVERSION()
     imgui.create_context(nil)
     defer imgui.destroy_context(nil)
 
     imgui_impl_glfw.init_for_open_gl(window, true)
     imgui_impl_opengl3.init(glsl_version)
+    defer imgui_impl_glfw.shutdown()
+    defer imgui_impl_opengl3.shutdown()
 
     for !glfw.WindowShouldClose(window) {
         glfw.PollEvents()
