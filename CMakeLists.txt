@@ -100,10 +100,13 @@ endif()
 # Setup ImGui Extensions
 if (USE_IMPLOT)
     file(GLOB IMPLOT_SOURCES
+        ./dcimplot/dcimplot.cpp
         ${implot_dep_SOURCE_DIR}/implot_demo.cpp
         ${implot_dep_SOURCE_DIR}/implot_items.cpp
         ${implot_dep_SOURCE_DIR}/implot.cpp
     )
+    include_directories(./dcimplot/)
+    include_directories(${implot_dep_SOURCE_DIR})
     list(APPEND SOURCES ${IMPLOT_SOURCES})
 endif()
 # ------------------------------------

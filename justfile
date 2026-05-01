@@ -2,7 +2,7 @@
 
 configure PLATFORM RENDERER:
     # Run CMake Config
-    cmake -B _build -G Ninja -DUSE_IMPLOT=1 -DPLATFORM={{ PLATFORM }} -DRENDERER={{ RENDERER }}
+    cmake -B _build -G Ninja -DUSE_IMPLOT=1 -DPLATFORM={{ PLATFORM }} -DRENDERER={{ RENDERER }} -DCMAKE_EXPORT_COMPILE_COMMANDS=1
 
     # Set up dist directory
     - rm -rf _build/dist
@@ -29,7 +29,8 @@ package PLATFORM RENDERER:
     cp -r imgui_impl_{{PLATFORM}}/ ./_build/dist
     cp -r imgui_impl_{{RENDERER}}/ ./_build/dist
     cp imgui.odin ./_build/dist
-    cp impl_enabled.odin ./_build/dist    
+    cp impl_enabled.odin ./_build/dist
+    cp -r implot ./_build/dist
     cp LICENSE ./_build/dist
     
     # cp build/deps/imgui/*.h dist/include
