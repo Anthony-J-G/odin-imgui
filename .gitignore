@@ -5,6 +5,8 @@
 impl_enabled.odin
 dist/
 *.zip
+compile_commands.json
+.cache/
 
 # Libraries
 *.lib
