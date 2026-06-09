@@ -40,6 +40,25 @@ if (${PLATFORM} STREQUAL glfw)
     list(APPEND deps glfw_dep)
 endif()
 
+if (${PLATFORM} STREQUAL sdl3)
+    FetchContent_Declare(
+        sdl3_dep
+        GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+        GIT_TAG        release-3.4.10
+    )
+    list(APPEND deps sdl3_dep)
+endif()
+
+if (${PLATFORM} STREQUAL wgpu)
+    FetchContent_Declare(
+        glfw_dep
+        GIT_REPOSITORY https://github.com/glfw/glfw.git
+        GIT_TAG        3.4
+    )
+    list(APPEND deps glfw_dep)
+endif()
+
+
 FetchContent_MakeAvailable(${deps})
 FetchContent_MakeAvailable(dear_bindings_dep)
 
@@ -64,6 +83,7 @@ set (CMAKE_CXX_STANDARD 11)
 set(SOURCES "")
 
 # Setup ImGui
+# ------------------------------------
 file(GLOB IMGUI_SOURCES
     ${imgui_dep_SOURCE_DIR}/imgui_demo.cpp
     ${imgui_dep_SOURCE_DIR}/imgui_draw.cpp
@@ -81,23 +101,34 @@ list(APPEND SOURCES ${IMGUI_SOURCES})
 # ------------------------------------
 
 # Setup ImGui Backends
+# ------------------------------------
+list(APPEND SOURCES
+    ${imgui_dep_SOURCE_DIR}/backends/imgui_impl_${PLATFORM}.cpp
+    ${dear_bindings_dep_SOURCE_DIR}/backends/dcimgui_impl_${PLATFORM}.cpp
+
+    ${imgui_dep_SOURCE_DIR}/backends/imgui_impl_${RENDERER}.cpp
+    ${dear_bindings_dep_SOURCE_DIR}/backends/dcimgui_impl_${RENDERER}.cpp    
+)
+
+# Platforms
 if (${PLATFORM} STREQUAL glfw)
     include_directories(${glfw_dep_SOURCE_DIR}/include)
-    list(APPEND SOURCES
-        ${imgui_dep_SOURCE_DIR}/backends/imgui_impl_${PLATFORM}.cpp
-        ${dear_bindings_dep_SOURCE_DIR}/backends/dcimgui_impl_${PLATFORM}.cpp
-    )
 endif()
 
-if (${RENDERER} STREQUAL opengl3)
-    list(APPEND SOURCES
-        ${imgui_dep_SOURCE_DIR}/backends/imgui_impl_${RENDERER}.cpp
-        ${dear_bindings_dep_SOURCE_DIR}/backends/dcimgui_impl_${RENDERER}.cpp
-    )
+if (${PLATFORM} STREQUAL sdl3)
+    include_directories(${sdl3_dep_SOURCE_DIR}/include)
+endif()
+
+# Renderers
+if (${RENDERER} STREQUAL opengl3)    
+endif()
+
+if (${RENDERER} STREQUAL wgpu)    
 endif()
 # ------------------------------------
 
 # Setup ImGui Extensions
+# ------------------------------------
 if (USE_IMPLOT)
     file(GLOB IMPLOT_SOURCES
         ./dcimplot/dcimplot.cpp
