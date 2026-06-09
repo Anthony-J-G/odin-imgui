@@ -26,8 +26,8 @@ package PLATFORM RENDERER:
     just configure {{ PLATFORM }} {{ RENDERER }}    
     just build
 
-    cp -r imgui_impl_{{PLATFORM}}/ ./_build/dist
-    cp -r imgui_impl_{{RENDERER}}/ ./_build/dist
+    cp -r imgui_impl_{{ PLATFORM }}/ ./_build/dist
+    cp -r imgui_impl_{{ RENDERER }}/ ./_build/dist
     cp imgui.odin ./_build/dist
     cp impl_enabled.odin ./_build/dist
     cp -r implot ./_build/dist

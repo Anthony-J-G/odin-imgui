@@ -41,9 +41,11 @@ when ODIN_OS == .Windows {
 	when ODIN_DEBUG && ODIN_ARCH == .amd64 {
 		@(extra_linker_flags="/NODEFAULTLIB:libcmt")
 		foreign import lib "windows/imgui_x64_debug.lib"
+
 	} else when !ODIN_DEBUG && ODIN_ARCH == .amd64 {
 	 	@(extra_linker_flags="/NODEFAULTLIB:libcmt")
 		foreign import lib "windows/imgui_x64_release.lib"
+		
 	}
 
 	// Arm64
