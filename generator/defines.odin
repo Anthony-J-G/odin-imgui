@@ -15,8 +15,8 @@ defines_to_ignore :: []string{
 }
 
 
-defines_to_override :: map[string]string{
-	{ "ImTextureID_Invalid", "cast(Texture_ID)0" },
+defines_to_override := map[string]string{
+	"ImTextureID_Invalid" = "cast(Texture_ID)0",
 }
 
 
@@ -32,8 +32,9 @@ write_defines :: proc(gen: ^Generator, handle: os.Handle, json_data: ^json.Value
 		return slice.contains(defines, name)
 	}
 
-	is_overridden_define :: #force_inline proc(defines: []string, name: string) -> bool {
-		return slice.contains(defines, name)
+	is_overridden_define :: #force_inline proc(defines: map[string]string, name: string) -> bool {
+		elem, ok := defines[name]
+		return ok
 	}
 
 	allocator := mem.arena_allocator(&gen.tmp_arena)
@@ -63,7 +64,7 @@ write_defines :: proc(gen: ^Generator, handle: os.Handle, json_data: ^json.Value
 		if is_ignored_define(defines_to_ignore, name_raw) { continue }
 
 		if content_value, content_ok := define_obj["content"]; content_ok {
-			if is_overriden_define(defines_to_override, name_raw) { content_value }
+			if is_overridden_define(defines_to_override, name_raw) { content_value = defines_to_override[name_raw]}
 			attached_comments := get_attached_comments(&define_obj, allocator)
 			name := remove_imgui(name_raw, allocator)
 			write_constant(gen, handle, name, attached_comments, content_value.(json.String))
