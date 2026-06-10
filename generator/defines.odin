@@ -6,6 +6,14 @@ import "core:mem"
 import os "core:os/old"
 import "core:slice"
 
+
+defines_to_ignore :: [?]string{
+	"IMGUI_IMPL_API",
+	"IM_ARRAYSIZE",
+	"IM_COUNTOF"
+}
+
+
 // Writes the defines from the given JSON data to the specified handle.
 write_defines :: proc(gen: ^Generator, handle: os.Handle, json_data: ^json.Value) {
 	root := json_data.(json.Object)
@@ -14,7 +22,7 @@ write_defines :: proc(gen: ^Generator, handle: os.Handle, json_data: ^json.Value
 	assert(defines_ok, "Missing 'defines' root object!")
 
 	// Some definitions to ignore
-	defines_to_ignore := []string{"IMGUI_IMPL_API"}
+	defines_to_ignore := []string{"IMGUI_IMPL_API", "IM_ARRAYSIZE", "IM_COUNTOF"}
 	is_ignored_define :: #force_inline proc(defines: []string, name: string) -> bool {
 		return slice.contains(defines, name)
 	}
