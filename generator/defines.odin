@@ -1,4 +1,4 @@
-package imgui_gen
+package generator
 
 // Core
 import "core:encoding/json"
