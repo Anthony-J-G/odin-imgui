@@ -93,9 +93,15 @@ write_typedefs :: proc(gen: ^Generator, handle: os.Handle, json_data: ^json.Valu
 				typedef_type_value = elem
 			} else {
 				typedef_type_value = typedef_type_declaration
+			}			
+			// Clean ImGui prefix from typedef values
+			cleaned_typedef_type_value := remove_imgui(typedef_type_value, allocator)
+			if (len(typedef_type_value) != len(cleaned_typedef_type_value)) { 
+				// Convert Case if value is actually an ImGui Type
+				cleaned_typedef_type_value = pascal_to_ada_case(cleaned_typedef_type_value, allocator)
 			}
 
-			typedef_to_write := fmt.tprintf("%s :: %s\n", typedef_name, typedef_type_value)
+			typedef_to_write := fmt.tprintf("%s :: %s\n", typedef_name, cleaned_typedef_type_value)
 
 			os.write_string(handle, typedef_to_write)
 		}
