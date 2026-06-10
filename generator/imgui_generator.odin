@@ -1,5 +1,7 @@
-package imgui_gen
+package generator
 
+import "core:fmt"
+import "core:strings"
 // Core
 import "core:encoding/json"
 import "core:log"
@@ -26,9 +28,9 @@ Generator :: struct {
 
 FLAG_TYPE 				:: "i32"
 TAB_SPACE 				:: "    "
-GENERATED_DIR 			:: "./_build/_deps/dear_bindings_dep-src/"
-GENERATED_BACKENDS_DIR 	:: "./generated/backends/"
-FILENAME 				:: "./imgui.odin"
+DEAR_BINDINGS_DIR		:: "./_build/_deps/dear_bindings_dep-src/"
+IMGUI_JSON 				:: DEAR_BINDINGS_DIR + "dcimgui.json"
+IMGUI_ODIN 				:: "./imgui.odin"
 
 // odinfmt: disable
 FOREIGN_IMPORT :: `
@@ -52,10 +54,13 @@ when ODIN_OS == .Windows {
 	when ODIN_DEBUG && ODIN_ARCH == .arm64 {
 		@(extra_linker_flags="/NODEFAULTLIB:libcmt")
 		foreign import lib "windows/imgui_arm64_debug.lib"
+
 	} else when !ODIN_DEBUG && ODIN_ARCH == .arm64 {
 	 	@(extra_linker_flags="/NODEFAULTLIB:libcmt")
 		foreign import lib "windows/imgui_arm64_release.lib"
+
 	}
+
 } else when ODIN_OS == .Linux {
 	when ODIN_ARCH == .amd64 {
 		foreign import lib "libimgui_linux_x64.a"
@@ -69,7 +74,8 @@ when ODIN_OS == .Windows {
 		foreign import lib "libimgui_macosx_arm64.a"
 	}
 }
-
+`
+MACRO_OVERRIDES :: `
 CHECKVERSION :: proc() {
 	ensure(
 		DebugCheckVersionAndDataLayout(
@@ -113,25 +119,53 @@ main :: proc() {
 	ensure(tmp_ally_buf != nil)
 	mem.arena_init(&gen.tmp_arena, tmp_ally_buf[:])
 
-	if !write_imgui(gen) {
-		return
-	}
+	if !write_imgui(gen) { return }
+	if !write_imgui_backend(gen, "sdl3") { return }
 }
 
-IMGUI_JSON :: GENERATED_DIR + "dcimgui.json"
 
 write_imgui :: proc(gen: ^Generator) -> (ok: bool) {
 	file_allocator := mem.arena_allocator(&gen.tmp_arena)
 	defer free_all(file_allocator)
 	
-	if os.exists(FILENAME) {
-		os.remove(FILENAME)
-	}
+	if os.exists(IMGUI_ODIN) {
+		os.remove(IMGUI_ODIN)
+	}	
 
-	im := create_file_handle(FILENAME, IMGUI_JSON, file_allocator)
+	im := create_file_handle(IMGUI_ODIN, IMGUI_JSON, file_allocator)
 	defer os.close(im.handle)
 
-	write_package_name(im.handle, nl = false)
+	write_package_name(im.handle, "imgui", nl = false)
+
+	os.write_string(im.handle, FOREIGN_IMPORT)
+	os.write_string(im.handle, MACRO_OVERRIDES)
+
+	gen.functions_to_ignore = {"ImStr_FromCharStr"}
+	defer gen.functions_to_ignore = {}
+
+	write_defines(gen, im.handle, &im.data)
+	write_enums(gen, im.handle, &im.data)
+	write_typedefs(gen, im.handle, &im.data)
+	write_structs(gen, im.handle, &im.data)
+	write_procedures(gen, im.handle, &im.data)
+
+	return true
+}
+
+
+write_imgui_backend :: proc(gen: ^Generator, backend: string) -> (ok: bool) {
+	file_allocator := mem.arena_allocator(&gen.tmp_arena)
+	defer free_all(file_allocator)
+	
+	// if os.exists(IMGUI_ODIN) { os.remove(IMGUI_ODIN) }
+
+	sb: strings.Builder
+	backend_json := fmt.sbprintf(&sb, DEAR_BINDINGS_DIR + "/backends/dcimgui_impl_%s.json", backend)
+
+	im := create_file_handle("backends/imgui_impl_sdl3.odin", backend_json, file_allocator)
+	defer os.close(im.handle)
+
+	write_package_name(im.handle, "backends", nl = false)
 
 	os.write_string(im.handle, FOREIGN_IMPORT)
 
@@ -146,6 +180,7 @@ write_imgui :: proc(gen: ^Generator) -> (ok: bool) {
 
 	return true
 }
+
 
 File_Handle :: struct {
 	data:   json.Value,
