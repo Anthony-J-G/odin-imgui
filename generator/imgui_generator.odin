@@ -72,7 +72,7 @@ when ODIN_OS == .Windows {
 
 CHECKVERSION :: proc() {
 	ensure(
-		debug_check_version_and_data_layout(
+		DebugCheckVersionAndDataLayout(
 			VERSION,
 			size_of(IO),
 			size_of(Style),

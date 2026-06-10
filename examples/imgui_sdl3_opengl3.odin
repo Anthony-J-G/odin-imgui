@@ -50,17 +50,17 @@ main :: proc() {
     sdl3.ShowWindow(window)
 
     // ImGui.CHECKVERSION()
-    ImGui.create_context()
-    io := ImGui.get_io()
+    ImGui.CreateContext()
+    io := ImGui.GetIO()
     if (io != nil) {
         io.config_flags = { .Nav_Enable_Keyboard, .Nav_Enable_Gamepad }
     }
 
-    ImGui.style_colors_dark(nil)
+    ImGui.StyleColorsDark(nil)
 
     // Setup scaling
-    style := ImGui.get_style();
-    ImGui.style_scale_all_sizes(style, main_scale) // Bake a fixed style scale. (until we have a solution for dynamic style scaling, changing this requires resetting Style + calling this again)    
+    style := ImGui.GetStyle();
+    ImGui.Style_ScaleAllSizes(style, main_scale) // Bake a fixed style scale. (until we have a solution for dynamic style scaling, changing this requires resetting Style + calling this again)    
     // style.font = main_scale;        // Set initial font scale. (in docking branch: using io.ConfigDpiScaleFonts=true automatically overrides this for every window depending on the current monitor)
 
     imgui_impl_sdl3.init_for_open_gl(window, gl_ctx)
@@ -87,17 +87,17 @@ main :: proc() {
 
         imgui_impl_opengl3.new_frame()
         imgui_impl_sdl3.new_frame()
-        ImGui.new_frame()
+        ImGui.NewFrame()
 
         if (show_demo_window) {
-            ImGui.show_demo_window(&show_demo_window)
+            ImGui.ShowDemoWindow(&show_demo_window)
         }
 
-        ImGui.render()
+        ImGui.Render()
         gl.Viewport(0, 0, cast(i32)io.display_size.x, cast(i32)io.display_size.y)
         gl.ClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w)
         gl.Clear(gl.COLOR_BUFFER_BIT)
-        imgui_impl_opengl3.render_draw_data(ImGui.get_draw_data())
+        imgui_impl_opengl3.render_draw_data(ImGui.GetDrawData())
         sdl3.GL_SwapWindow(window)
     }
 

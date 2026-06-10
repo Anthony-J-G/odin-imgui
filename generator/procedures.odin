@@ -72,7 +72,6 @@ write_procedures :: proc(gen: ^Generator, handle: os.Handle, json_data: ^json.Va
 
 		// Get the procedure name and clean up
 		proc_name := remove_imgui(proc_name_raw, allocator)
-		proc_name = strings.to_snake_case(proc_name, allocator)
 		strings.write_string(&b, TAB_SPACE)
 		strings.write_string(&b, proc_name)
 		strings.write_string(&b, " :: proc(")
