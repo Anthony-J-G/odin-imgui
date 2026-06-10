@@ -1,5 +1,6 @@
 package generator
 
+import "core:slice"
 import "core:fmt"
 import "core:strings"
 // Core
@@ -28,70 +29,15 @@ Generator :: struct {
 
 FLAG_TYPE 				:: "i32"
 TAB_SPACE 				:: "    "
-DEAR_BINDINGS_DIR		:: "./_build/_deps/dear_bindings_dep-src/"
+BUILD_DIR				:: "./_build/"
+DEAR_BINDINGS_DIR		:: BUILD_DIR + "_deps/dear_bindings_dep-src/"
 IMGUI_JSON 				:: DEAR_BINDINGS_DIR + "dcimgui.json"
-IMGUI_ODIN 				:: "./imgui.odin"
+IMGUI_ODIN 				:: BUILD_DIR + "dist/imgui.odin"
 
-// odinfmt: disable
-FOREIGN_IMPORT :: `
-when ODIN_OS == .Linux || ODIN_OS == .Darwin {
-	@(require) foreign import stdcpp "system:c++"
-}
 
-when ODIN_OS == .Windows {
-	// x86-64
-	when ODIN_DEBUG && ODIN_ARCH == .amd64 {
-		@(extra_linker_flags="/NODEFAULTLIB:libcmt")
-		foreign import lib "windows/imgui_x64_debug.lib"
+PLATFORM :: #config(PLATFORM, "")
+RENDERER :: #config(RENDERER, "")
 
-	} else when !ODIN_DEBUG && ODIN_ARCH == .amd64 {
-	 	@(extra_linker_flags="/NODEFAULTLIB:libcmt")
-		foreign import lib "windows/imgui_x64_release.lib"
-		
-	}
-
-	// Arm64
-	when ODIN_DEBUG && ODIN_ARCH == .arm64 {
-		@(extra_linker_flags="/NODEFAULTLIB:libcmt")
-		foreign import lib "windows/imgui_arm64_debug.lib"
-
-	} else when !ODIN_DEBUG && ODIN_ARCH == .arm64 {
-	 	@(extra_linker_flags="/NODEFAULTLIB:libcmt")
-		foreign import lib "windows/imgui_arm64_release.lib"
-
-	}
-
-} else when ODIN_OS == .Linux {
-	when ODIN_ARCH == .amd64 {
-		foreign import lib "libimgui_linux_x64.a"
-	} else {
-		foreign import lib "libimgui_linux_arm64.a"
-	}
-} else when ODIN_OS == .Darwin {
-	when ODIN_ARCH == .amd64 {
-		foreign import lib "libimgui_macosx_x64.a"
-	} else {
-		foreign import lib "libimgui_macosx_arm64.a"
-	}
-}
-`
-MACRO_OVERRIDES :: `
-CHECKVERSION :: proc() {
-	ensure(
-		DebugCheckVersionAndDataLayout(
-			VERSION,
-			size_of(IO),
-			size_of(Style),
-			size_of(Vec2),
-			size_of(Vec4),
-			size_of(Draw_Vert),
-			size_of(Draw_Idx),
-		),
-	)
-}
-
-`
-// odinfmt: enable
 
 main :: proc() {
 	context.logger = log.create_console_logger(opt = {.Terminal_Color, .Level})
@@ -120,7 +66,18 @@ main :: proc() {
 	mem.arena_init(&gen.tmp_arena, tmp_ally_buf[:])
 
 	if !write_imgui(gen) { return }
-	if !write_imgui_backend(gen, "sdl3") { return }
+
+	if slice.contains(VALID_PLATFORMS, PLATFORM) {
+		write_imgui_backend(gen, PLATFORM)
+	} else {
+		log.errorf("Invalid ImGui Platform: %s", PLATFORM)
+	}
+
+	if slice.contains(VALID_RENDERERS, RENDERER) {
+		write_imgui_backend(gen, RENDERER)
+	} else {
+		log.errorf("Invalid ImGui Renderer: %s", RENDERER)
+	}
 }
 
 
@@ -137,7 +94,7 @@ write_imgui :: proc(gen: ^Generator) -> (ok: bool) {
 
 	write_package_name(im.handle, "imgui", nl = false)
 
-	os.write_string(im.handle, FOREIGN_IMPORT)
+	os.write_string(im.handle, IMGUI_FOREIGN_IMPORT)
 	os.write_string(im.handle, MACRO_OVERRIDES)
 
 	gen.functions_to_ignore = {"ImStr_FromCharStr"}
@@ -156,18 +113,21 @@ write_imgui :: proc(gen: ^Generator) -> (ok: bool) {
 write_imgui_backend :: proc(gen: ^Generator, backend: string) -> (ok: bool) {
 	file_allocator := mem.arena_allocator(&gen.tmp_arena)
 	defer free_all(file_allocator)
-	
+		
 	// if os.exists(IMGUI_ODIN) { os.remove(IMGUI_ODIN) }
 
-	sb: strings.Builder
-	backend_json := fmt.sbprintf(&sb, DEAR_BINDINGS_DIR + "/backends/dcimgui_impl_%s.json", backend)
+	json_sb: strings.Builder
+	backend_json := fmt.sbprintf(&json_sb, DEAR_BINDINGS_DIR + "backends/dcimgui_impl_%s.json", backend)
 
-	im := create_file_handle("backends/imgui_impl_sdl3.odin", backend_json, file_allocator)
+	output_sb: strings.Builder
+	output_path := fmt.sbprintf(&output_sb, BUILD_DIR + "dist/backends/imgui_impl_%s.odin", backend)
+
+	im := create_file_handle(output_path, backend_json, file_allocator)
 	defer os.close(im.handle)
 
 	write_package_name(im.handle, "backends", nl = false)
 
-	os.write_string(im.handle, FOREIGN_IMPORT)
+	os.write_string(im.handle, BACKEND_FOREIGN_IMPORT)
 
 	gen.functions_to_ignore = {"ImStr_FromCharStr"}
 	defer gen.functions_to_ignore = {}

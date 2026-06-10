@@ -7,6 +7,7 @@ configure PLATFORM RENDERER:
     # Set up dist directory
     - rm -rf _build/dist
     - mkdir  _build/dist
+    - mkdir  _build/dist/backends
     - mkdir  _build/dist/include
     - mkdir  _build/dist/windows
     - mkdir  _build/dist/linux
@@ -18,19 +19,19 @@ example PLATFORM RENDERER:
     odin run ./examples/imgui_{{ PLATFORM }}_{{ RENDERER }}.odin -file -debug
 
 
-generate:
-    odin run ./generator
+generate PLATFORM RENDERER:
+    odin run ./generator -define:PLATFORM={{ PLATFORM }} -define:RENDERER={{ RENDERER }}
 
 
 package PLATFORM RENDERER:
-    just configure {{ PLATFORM }} {{ RENDERER }}    
+    just configure {{ PLATFORM }} {{ RENDERER }}
     just build
-
-    cp -r imgui_impl_{{ PLATFORM }}/ ./_build/dist
-    cp -r imgui_impl_{{ RENDERER }}/ ./_build/dist
-    cp imgui.odin ./_build/dist
+    just generate {{ PLATFORM }} {{ RENDERER }}
+    
+    # cp -r imgui_impl_{{ PLATFORM }}/ ./_build/dist
+    # cp -r imgui_impl_{{ RENDERER }}/ ./_build/dist
     # cp impl_enabled.odin ./_build/dist
-    cp -r implot ./_build/dist
+    # cp -r implot ./_build/dist
     cp LICENSE ./_build/dist
     
     # cp build/deps/imgui/*.h dist/include
