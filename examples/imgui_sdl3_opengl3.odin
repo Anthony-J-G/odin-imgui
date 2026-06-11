@@ -8,9 +8,7 @@ import "base:runtime"
 import "vendor:sdl3"
 
 import ImGui "../_build/dist"
-import "../_build/dist/imgui_impl_sdl3"
-import "../_build/dist/imgui_impl_opengl3"
-
+import ImGui_Impl "../_build/dist/backends"
 
 
 main :: proc() {
@@ -53,8 +51,8 @@ main :: proc() {
     ImGui.CreateContext()
     io := ImGui.GetIO()
     if (io != nil) {
-        io.config_flags = { .Nav_Enable_Keyboard, .Nav_Enable_Gamepad }
-    }
+        io.config_flags = { .Nav_Enable_Keyboard, .Nav_Enable_Gamepad, .Docking_Enable, .Viewports_Enable }
+    }    
 
     ImGui.StyleColorsDark(nil)
 
@@ -63,8 +61,13 @@ main :: proc() {
     ImGui.Style_ScaleAllSizes(style, main_scale) // Bake a fixed style scale. (until we have a solution for dynamic style scaling, changing this requires resetting Style + calling this again)    
     // style.font = main_scale;        // Set initial font scale. (in docking branch: using io.ConfigDpiScaleFonts=true automatically overrides this for every window depending on the current monitor)
 
-    imgui_impl_sdl3.init_for_open_gl(window, gl_ctx)
-    imgui_impl_opengl3.init(glsl_version)
+    if (io != nil && .Viewports_Enable in io.config_flags) {
+        style.window_rounding = 0.0
+        style.colors[ImGui.Col.Window_Bg].w = 1.0
+    }
+
+    ImGui_Impl.SDL3_InitForOpenGL(window, gl_ctx)
+    ImGui_Impl.OpenGL3_Init()
 
     show_demo_window := true
     show_another_window := false
@@ -74,6 +77,7 @@ main :: proc() {
     for (!done) {
         event: sdl3.Event
         for (sdl3.PollEvent(&event)) {
+            ImGui_Impl.SDL3_ProcessEvent(&event);
             #partial switch (event.type) {
             case .QUIT: {done = true}
             case .WINDOW_CLOSE_REQUESTED: { if (event.window.windowID == sdl3.GetWindowID(window)) {done = true} }
@@ -85,19 +89,53 @@ main :: proc() {
             continue
         }
 
-        imgui_impl_opengl3.new_frame()
-        imgui_impl_sdl3.new_frame()
+        ImGui_Impl.OpenGL3_NewFrame()
+        ImGui_Impl.SDL3_NewFrame()
         ImGui.NewFrame()
 
-        if (show_demo_window) {
-            ImGui.ShowDemoWindow(&show_demo_window)
+        if (show_demo_window) { ImGui.ShowDemoWindow(&show_demo_window) }
+
+        @(static) f: f32 = 0.0
+        @(static) counter: i32 = 0
+
+        if (ImGui.Begin("Hello, world")) {
+            defer ImGui.End()
+
+            ImGui.Text("This is some useful text.")
+            ImGui.Checkbox("Demo window", &show_demo_window)
+            ImGui.Checkbox("Another Window", &show_another_window)
+
+            ImGui.SliderFloat("float", &f, 0.0, 1.0)
+            ImGui.ColorEdit3("float", cast(^[3]f32)(&clear_color))
+
+            if (ImGui.Button("Button")) { counter += 1 }
+            ImGui.SameLine()
+            ImGui.Text("counter = %d", counter)
+
+            ImGui.Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0 / io.framerate, io.framerate)
+        }
+
+        if (show_another_window && ImGui.Begin("Another Window", &show_another_window)) {
+            defer ImGui.End()
+
+            ImGui.Text("Hello from another window!")
+            if (ImGui.Button("Close Me")) { show_another_window = false }
         }
 
         ImGui.Render()
         gl.Viewport(0, 0, cast(i32)io.display_size.x, cast(i32)io.display_size.y)
         gl.ClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w)
         gl.Clear(gl.COLOR_BUFFER_BIT)
-        imgui_impl_opengl3.render_draw_data(ImGui.GetDrawData())
+        ImGui_Impl.OpenGL3_RenderDrawData(ImGui.GetDrawData())
+
+        if (io != nil && .Viewports_Enable in io.config_flags) {
+            backup_current_window := sdl3.GL_GetCurrentWindow()
+            backup_current_context := sdl3.GL_GetCurrentContext()
+            ImGui.UpdatePlatformWindows()
+            ImGui.RenderPlatformWindowsDefault()
+            sdl3.GL_MakeCurrent(backup_current_window, backup_current_context)
+        }
+
         sdl3.GL_SwapWindow(window)
     }
 

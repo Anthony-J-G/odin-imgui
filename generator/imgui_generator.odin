@@ -1,9 +1,9 @@
 package generator
 
+// Core
 import "core:slice"
 import "core:fmt"
 import "core:strings"
-// Core
 import "core:encoding/json"
 import "core:log"
 import "core:mem"
@@ -125,16 +125,26 @@ write_imgui_backend :: proc(gen: ^Generator, backend: string) -> (ok: bool) {
 	im := create_file_handle(output_path, backend_json, file_allocator)
 	defer os.close(im.handle)
 
-	write_package_name(im.handle, "backends", nl = false)
+	write_package_name(im.handle, "backends", nl = false)	
+
+	write_package_import(im.handle, "./../", "ImGui")
+
+	// Handle Backend Specific Imports (for projects in the O)
+	if (strings.compare(backend, "sdl2") == 0) { write_package_import(im.handle, "vendor:sdl2", "SDL2") }
+	else if (strings.compare(backend, "sdl3") == 0) { write_package_import(im.handle, "vendor:sdl3", "SDL3") }	
+	else if (strings.compare(backend, "opengl2") == 0) { write_package_import(im.handle, "vendor:OpenGL", "gl") }
+	else if (strings.compare(backend, "opengl3") == 0) { write_package_import(im.handle, "vendor:OpenGL", "gl") }
+	else if (strings.compare(backend, "wgpu") == 0) { write_package_import(im.handle, "vendor:wgpu") }
+	else { log.warnf("no extra imports for backend '%s' added", backend) }
 
 	os.write_string(im.handle, BACKEND_FOREIGN_IMPORT)
 
 	gen.functions_to_ignore = {"ImStr_FromCharStr"}
 	defer gen.functions_to_ignore = {}
 
-	write_defines(gen, im.handle, &im.data)
+	// write_defines(gen, im.handle, &im.data)
 	write_enums(gen, im.handle, &im.data)
-	write_typedefs(gen, im.handle, &im.data)
+	// write_typedefs(gen, im.handle, &im.data)
 	write_structs(gen, im.handle, &im.data)
 	write_procedures(gen, im.handle, &im.data)
 

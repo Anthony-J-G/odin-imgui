@@ -12,14 +12,14 @@ project(imgui)
 FetchContent_Declare(
   imgui_dep
   GIT_REPOSITORY https://github.com/ocornut/imgui.git  
-  GIT_TAG        b1bcb12a624af7509894c8e77dd47416997777fa # release-1.92.7
+  GIT_TAG        b61e56346a92cfcaf1f43a545ca37b0b32239654 # release-1.92.8
 )
 set(deps imgui_dep)
 
 FetchContent_Declare(
   dear_bindings_dep
-  URL https://github.com/dearimgui/dear_bindings/releases/download/DearBindings_v0.19_ImGui_v1.92.7-docking/DearBindings_v0.19_ImGui_v1.92.7-docking.zip
-  URL_HASH        SHA256=6b3ba0bc70a1379f681e85c5173445c7d7fe0e966bfa11dd3449bdff5ab46e12 # release-1.92.7
+  URL https://github.com/dearimgui/dear_bindings/releases/download/DearBindings_v0.21_ImGui_v1.92.8-docking/DearBindings_v0.21_ImGui_v1.92.8-docking.zip
+  URL_HASH        SHA256=8da6332fecc007d406cf64c2fa07025b97906c973f1c4d70744195dbe0ee6db3 # release-1.92.8
 )
 
 if (USE_IMPLOT)
@@ -52,11 +52,14 @@ endif()
 if (${PLATFORM} STREQUAL wgpu)
     FetchContent_Declare(
         glfw_dep
-        GIT_REPOSITORY https://github.com/glfw/glfw.git
-        GIT_TAG        3.4
+        GIT_REPOSITORY https://github.com/gfx-rs/wgpu-native.git
+        GIT_TAG        v29.0.0.0
     )
     list(APPEND deps glfw_dep)
 endif()
+
+
+
 
 
 FetchContent_MakeAvailable(${deps})
@@ -123,7 +126,11 @@ endif()
 if (${RENDERER} STREQUAL opengl3)    
 endif()
 
-if (${RENDERER} STREQUAL wgpu)    
+if (${RENDERER} STREQUAL wgpu)
+endif()
+
+if (${PLATFORM} STREQUAL vulkan)
+    find_package(Vulkan REQUIRED)
 endif()
 # ------------------------------------
 

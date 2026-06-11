@@ -292,7 +292,7 @@ write_procedures :: proc(gen: ^Generator, handle: os.Handle, json_data: ^json.Va
 			strings.write_string(&b, return_type)
 		}
 
-		strings.write_string(&b, " ---\n")
+		strings.write_string(&b, " ---\n\n")
 
 		os.write_string(handle, strings.to_string(b))
 	}

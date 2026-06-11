@@ -102,13 +102,13 @@ remove_imgui :: proc(name: string, allocator: mem.Allocator) -> string {
 
 write_package_name :: proc(handle: os.Handle, name := "imgui", nl := true) {
 	runtime.DEFAULT_TEMP_ALLOCATOR_TEMP_GUARD()
-	package_name := fmt.tprintf("package %s\n%s", name, nl ? "\n" : "")
+	package_name := fmt.tprintf("package %s\n%s\n", name, nl ? "\n" : "")
 	os.write_string(handle, package_name)
 }
 
-write_package_import :: proc(handle: os.Handle, name: string, nl := true) {
+write_package_import :: proc(handle: os.Handle, name: string, alias := "") {
 	runtime.DEFAULT_TEMP_ALLOCATOR_TEMP_GUARD()
-	package_name := fmt.tprintf("import %s\n%s", name, nl ? "\n" : "")
+	package_name := fmt.tprintf("import %s\"%s\"\n", strings.compare(alias, "") == 0 ? "" : alias, name)
 	os.write_string(handle, package_name)
 }
 
